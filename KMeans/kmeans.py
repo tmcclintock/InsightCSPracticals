@@ -7,6 +7,10 @@ class KMclustering(object):
     TODO: accept an arbitrary distance definition,
     and swap that out for the defaul L2 distance
     used in _optimize_once().
+
+    Note: the assignments object specifies which mean
+    a point belongs to. This isn't absolutely necessary
+    and can be gotten rid of if space must be optimized.
     """
 
     def __init__(self, points, k, distance_def = None):
