@@ -24,23 +24,25 @@ class DenseLayer(object):
         self.shape = (Nin, Nout)
 
     def forward(self, X):
+        #Input has shape -1 x N
+        #W has shape M x N
+        #outputs have shape -1 x M
         z = np.dot(X, self.W)
-        self.A = _sigmoid(z)
-        self.dAdz = _sigmoid_deriv(z)
+        self.A = _sigmoid(z) #Activation function
+        self.dAdz = _sigmoid_deriv(z) #derivative of activation function
         return self.A
 
     def backward(self, X, NextLayer):
-        print(NextLayer.delta.shape, NextLayer.W.shape, self.dAdz.shape)
-
-        temp = np.dot(NextLayer.delta, NextLayer.W)
-        print(temp.shape)
-        self.delta = temp * self.dAdz.T[:]
+        print("In backward: ",NextLayer.delta.shape, NextLayer.W.T.shape, self.dAdz.shape)
+        temp = np.dot(NextLayer.delta, NextLayer.W.T)
+        
+        self.delta =  (temp[:] * self.dAdz.T).T
         return self.delta
 
-    def update(self, lA, learning_rate):
-        res = np.dot(lA, self.delta)
+    def update(self, X, learning_rate):
+        res = np.dot(self.delta, X.T)
         print(res.shape)
-        #self.W -= learning_rate * res
+        self.W -= learning_rate * np.mean(res, -1) #average across samples
 
 class SoftmaxLayer(object):
     def __init__(self, N):
@@ -54,14 +56,13 @@ class SoftmaxLayer(object):
         
     def backward(self, X, y):
         #Derivative of cross entropy loss
-        #Assume y is a one-hot encoding
-
         m = y.shape[0]
         self.loss = _softmax(X)
         grad = self.loss
         grad[range(m), y] -= y
         grad /= m
         self.delta = grad
+        print("In SM layer: ",self.delta.shape)
         return grad
 
     def update(self, lA, learning_rate):
